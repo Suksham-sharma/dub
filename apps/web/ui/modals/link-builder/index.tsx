@@ -247,6 +247,17 @@ function LinkBuilderInner({
           <form
             ref={formRef}
             onSubmit={handleSubmit(async (data) => {
+              // check for circular link
+              const destinationUrl = new URL(data.url);
+              if (destinationUrl.hostname === "dub.sh") {
+                const destinationPath = destinationUrl.pathname.substring(1);
+                if (destinationPath === data.key) {
+                  toast.error(
+                    "You cannot shorten a link that redirects to itself.",
+                  );
+                  throw new Error("Circular link detected");
+                }
+              }
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
               const { user, tags, tagId, folderId, ...rest } = data;
               const bodyData = {
